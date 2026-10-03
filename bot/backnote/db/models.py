@@ -164,6 +164,8 @@ class Subject(Base):
     provider: Mapped[str | None] = mapped_column(String(128))
     url: Mapped[str | None] = mapped_column(String(1024))
     is_archived: Mapped[bool] = mapped_column(Boolean, default=False)
+    icon: Mapped[str | None] = mapped_column(String(64))
+    color: Mapped[str | None] = mapped_column(String(32))
     created_by: Mapped[int | None] = mapped_column(BigInteger, _user_fk())
     created_at: Mapped[datetime] = mapped_column(default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(default=utcnow, onupdate=utcnow)

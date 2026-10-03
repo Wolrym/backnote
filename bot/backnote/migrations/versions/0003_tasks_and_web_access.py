@@ -31,6 +31,10 @@ def upgrade() -> None:
         )
         batch_op.create_unique_constraint(batch_op.f("uq_users_login"), ["login"])
 
+    with op.batch_alter_table("subjects", schema=None) as batch_op:
+        batch_op.add_column(sa.Column("icon", sa.String(length=64), nullable=True))
+        batch_op.add_column(sa.Column("color", sa.String(length=32), nullable=True))
+
     op.create_table(
         "web_sessions",
         sa.Column("id", sa.Text(), nullable=False),
@@ -99,6 +103,9 @@ def downgrade() -> None:
     op.drop_table("tasks")
     op.drop_index("ix_web_sessions_user", table_name="web_sessions")
     op.drop_table("web_sessions")
+    with op.batch_alter_table("subjects", schema=None) as batch_op:
+        batch_op.drop_column("color")
+        batch_op.drop_column("icon")
     with op.batch_alter_table("users", schema=None) as batch_op:
         batch_op.drop_constraint(batch_op.f("uq_users_login"), type_="unique")
         batch_op.drop_column("can_edit")
