@@ -1,20 +1,56 @@
+# Node & Next.js
+node_modules/
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# Python & UV
 __pycache__/
 *.py[cod]
+*$py.class
+*.so
+.Python
+bot/.venv/
 .venv/
-.env
-data/
-*.db
-*.db-journal
+env/
+venv/
 .pytest_cache/
 .ruff_cache/
-.hoplite
-node_modules/
-dist/
+
+# Databases & local data
+data/
+*.db
+*.db-shm
+*.db-wal
+sqlite.db
+sqlite.db-shm
+sqlite.db-wal
+
+# Environment files
+.env
 .env.local
-.env.*.local
-logs
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
+
+# OS & IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Docker / Caddy volumes
+caddy_data/
+caddy_config/

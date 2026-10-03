@@ -1,0 +1,144 @@
+@import "tailwindcss";
+
+/* ── Теми. Темна — темно-сіра (не чорна). Перемикається класом .dark на <html>. ── */
+:root {
+  --bg: #fafafa;
+  --surface: #ffffff;
+  --surface-2: #f4f4f5;
+  --line: #e4e4e7;
+  --line-strong: #d4d4d8;
+  --fg: #18181b;
+  --muted: #71717a;
+  --faint: #a1a1aa;
+  --accent: #18181b;
+  --accent-fg: #ffffff;
+  --focus: rgba(24, 24, 27, 0.08);
+
+  --green-bg: #ecfdf5; --green-fg: #047857;
+  --amber-bg: #fffbeb; --amber-fg: #b45309;
+  --indigo-bg: #eef2ff; --indigo-fg: #4338ca;
+  --red-bg: #fef2f2; --red-fg: #b91c1c;
+  --code-bg: #f4f4f5;
+  color-scheme: light;
+}
+
+.dark {
+  --bg: #1d1d20;
+  --surface: #26262a;
+  --surface-2: #2e2e33;
+  --line: #3a3a40;
+  --line-strong: #4a4a52;
+  --fg: #ececef;
+  --muted: #a1a1aa;
+  --faint: #71717a;
+  --accent: #ececef;
+  --accent-fg: #1d1d20;
+  --focus: rgba(236, 236, 239, 0.1);
+
+  --green-bg: rgba(16, 185, 129, 0.14); --green-fg: #6ee7b7;
+  --amber-bg: rgba(245, 158, 11, 0.14); --amber-fg: #fcd34d;
+  --indigo-bg: rgba(99, 102, 241, 0.2); --indigo-fg: #a5b4fc;
+  --red-bg: rgba(239, 68, 68, 0.16); --red-fg: #fca5a5;
+  --code-bg: #1d1d20;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-focus: var(--focus);
+  --color-green-bg: var(--green-bg);
+  --color-green-fg: var(--green-fg);
+  --color-amber-bg: var(--amber-bg);
+  --color-amber-fg: var(--amber-fg);
+  --color-indigo-bg: var(--indigo-bg);
+  --color-indigo-fg: var(--indigo-fg);
+  --color-red-bg: var(--red-bg);
+  --color-red-fg: var(--red-fg);
+  --color-code: var(--code-bg);
+  --font-mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
+}
+
+html { background: var(--bg); }
+body { background: var(--bg); color: var(--fg); -webkit-font-smoothing: antialiased; }
+
+/* ── Анімація зміни теми (View Transitions API: круг від кнопки) ── */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) { z-index: 1; }
+::view-transition-new(root) { z-index: 2; }
+
+/* Запасний варіант для браузерів без View Transitions */
+.theme-fade, .theme-fade * {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}
+
+/* ── Поява сторінок і списків ── */
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.rise { animation: rise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes pop { 0% { transform: scale(0); } 70% { transform: scale(1.2); } 100% { transform: scale(1); } }
+.pop { animation: pop 0.25s ease-out both; }
+
+/* ── Markdown (конспекти, Markdown-завдання) ── */
+.md { font-size: 0.875rem; line-height: 1.7; color: var(--muted); overflow-wrap: anywhere; }
+.md > :first-child { margin-top: 0; }
+.md > :last-child { margin-bottom: 0; }
+.md h1, .md h2, .md h3, .md h4 { color: var(--fg); font-weight: 600; letter-spacing: -0.01em; line-height: 1.3; }
+.md h1 { font-size: 1.25rem; margin: 1.6em 0 0.5em; }
+.md h2 { font-size: 1.05rem; margin: 1.6em 0 0.4em; }
+.md h3 { font-size: 0.95rem; margin: 1.4em 0 0.3em; }
+.md h4 { font-size: 0.875rem; margin: 1.2em 0 0.3em; }
+.md p { margin: 0.7em 0; color: var(--fg); opacity: 0.85; }
+.md strong { color: var(--fg); font-weight: 600; }
+.md a { color: var(--fg); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line-strong); }
+.md a:hover { text-decoration-color: var(--fg); }
+.md ul, .md ol { margin: 0.7em 0; padding-left: 1.4em; color: var(--fg); opacity: 0.85; }
+.md ul { list-style: disc; }
+.md ol { list-style: decimal; }
+.md li { margin: 0.25em 0; }
+.md li::marker { color: var(--faint); }
+.md ul.contains-task-list { list-style: none; padding-left: 0.2em; }
+.md .task-list-item input { margin-right: 0.55em; accent-color: var(--accent); transform: translateY(1px); }
+.md code { font-family: var(--font-mono); font-size: 0.85em; background: var(--surface-2); padding: 0.15em 0.4em; border-radius: 6px; color: var(--fg); }
+.md pre { margin: 1em 0; background: var(--code-bg); border: 1px solid var(--line); border-radius: 10px; padding: 0.9em 1em; overflow-x: auto; line-height: 1.55; }
+.md pre code { background: none; padding: 0; font-size: 0.8rem; }
+.md blockquote { margin: 1em 0; padding: 0.1em 1em; border-left: 3px solid var(--line-strong); color: var(--muted); }
+.md hr { border: 0; border-top: 1px solid var(--line); margin: 1.6em 0; }
+.md table { width: 100%; border-collapse: collapse; margin: 1em 0; font-size: 0.82rem; display: block; overflow-x: auto; }
+.md th, .md td { border: 1px solid var(--line); padding: 0.45em 0.8em; text-align: left; }
+.md th { background: var(--surface-2); color: var(--fg); font-weight: 600; }
+.md img { max-width: 100%; border-radius: 8px; }
+.md .katex-display { overflow-x: auto; overflow-y: hidden; }
+
+/* ── Підсвітка коду (highlight.js) ── */
+.hljs-comment, .hljs-quote { color: var(--faint); font-style: italic; }
+.hljs-keyword, .hljs-selector-tag, .hljs-literal, .hljs-built_in { color: #8250df; }
+.hljs-string, .hljs-title.class_, .hljs-regexp, .hljs-addition { color: #0a7d4f; }
+.hljs-number, .hljs-attr, .hljs-variable, .hljs-template-variable { color: #b35900; }
+.hljs-title, .hljs-section, .hljs-function .hljs-title { color: #0b69c7; }
+.hljs-meta, .hljs-type, .hljs-tag, .hljs-name { color: #c2410c; }
+.hljs-deletion { color: #b91c1c; }
+.dark .hljs-keyword, .dark .hljs-selector-tag, .dark .hljs-literal, .dark .hljs-built_in { color: #c4a5ff; }
+.dark .hljs-string, .dark .hljs-title.class_, .dark .hljs-regexp, .dark .hljs-addition { color: #7ee2a8; }
+.dark .hljs-number, .dark .hljs-attr, .dark .hljs-variable, .dark .hljs-template-variable { color: #ffb86b; }
+.dark .hljs-title, .dark .hljs-section, .dark .hljs-function .hljs-title { color: #7cb7ff; }
+.dark .hljs-meta, .dark .hljs-type, .dark .hljs-tag, .dark .hljs-name { color: #ff9e7a; }
+.dark .hljs-deletion { color: #ff8a8a; }
+
+textarea, input, select { color: var(--fg); }
+::placeholder { color: var(--faint); }

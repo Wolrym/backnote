@@ -1,7 +1,53 @@
 services:
-  bot:
-    build: .
+  # Веб-інтерфейс (Next.js)
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: backnote-web
     restart: unless-stopped
-    env_file: .env
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=sqlite:///app/data/backnote.db
+      - PORT=3000
     volumes:
       - ./data:/app/data
+
+  # Telegram-бот (Python aiogram)
+  bot:
+    build:
+      context: ./bot
+      dockerfile: Dockerfile
+    container_name: backnote-bot
+    restart: unless-stopped
+    environment:
+      - BOT_TOKEN=${BOT_TOKEN}
+      - ADMIN_ID=${ADMIN_ID}
+      - DATABASE_URL=sqlite+aiosqlite:///app/data/backnote.db
+      - TIMEZONE=${TIMEZONE:-Europe/Kyiv}
+      - WEB_URL=${WEB_URL:-http://localhost:3000}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-flash-latest}
+      - SUMMARY_LANGUAGE=${SUMMARY_LANGUAGE:-Ukrainian}
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      - web
+
+  # Опціонально: автоматичний HTTPS для вашого домену через Caddy
+  # Щоб увімкнути, розкоментуйте цей блок та замініть example.com на ваш домен:
+  # caddy:
+  #   image: caddy:2-alpine
+  #   container_name: backnote-caddy
+  #   restart: unless-stopped
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   command: caddy reverse-proxy --from https://your-domain.com --to http://web:3000
+  #   volumes:
+  #     - ./caddy_data:/data
+  #     - ./caddy_config:/config
+  #   depends_on:
+  #     - web

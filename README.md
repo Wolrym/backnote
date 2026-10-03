@@ -1,104 +1,130 @@
-# Backnote
+# Backnote — Telegram-бот + Веб-інтерфейс
 
-A private Telegram study base for university subjects, lectures and online courses.
-Built with [aiogram 3](https://docs.aiogram.dev) and [aiogram-dialog 2](https://aiogram-dialog.readthedocs.io).
+Легка, зручна та функціональна навчальна база: Telegram-бот і веб-інтерфейс, які працюють синхронно з **єдиною спільною базою даних**.
 
-Friends add lectures and materials; everyone studies from the same base while keeping
-personal progress and notes. No grades, deadlines or teachers — just a place to learn.
+---
 
-## Features
+## ⚡ Головна концепція (Zero Overengineering)
+- **Єдина база SQLite у режимі WAL**: Telegram-бот і веб-сайт одночасно читають і записують в один і той самий файл (`./data/backnote.db`). Будь-яка зміна в боті миттєво з'являється на сайті, і навпаки.
+- **Мінімум споживання ресурсів**: не потрібні важкі сервери PostgreSQL чи Redis. Увесь проект споживає лише **~150–250 МБ оперативної пам'яті** і спокійно працює на найдешевшому VPS за $3–$4/міс.
 
-- **Whitelist access** — one admin (from `ADMIN_ID`) and a list of members. Strangers who press
-  `/start` send an access request that the admin approves with one tap.
-- **📘 Subjects** — university subjects (Software Engineering programme) tagged with study
-  *year* and *term* (3 terms a year); the list shows the newest term first.
-  Code, instructor, ECTS, description, link; archive old terms instead of deleting them.
-- **🎯 Courses** — online courses and extra tracks (AI, agents, Coursera/edX, bootcamps…)
-  with provider and link. Same structure as subjects.
-- **🎓 Lessons** — lecture / seminar / practice / lab / video / reading, auto-numbered per type.
-  YouTube recordings show a large preview right in the chat. Prev/next navigation and a
-  shareable deep link (`t.me/<bot>?start=l42`).
-- **✅ Personal progress** — each member marks lessons as completed independently; progress
-  bars per subject, overall stats and a *Continue* button for the next unfinished lesson.
-- **🗒 Private notes** per lesson.
-- **📎 Materials** — files (PDF, slides, photos, video, audio) or links attached to a subject
-  or a lesson. Forward several files at once.
-- **🧠 Summaries** — shown as Telegram **Rich Messages** (Bot API 10.1+): headings, tables,
-  task lists, LaTeX formulas, collapsible answers. Write them yourself (text or `.md` file) or
-  generate them with **Gemini** for free from a public YouTube recording.
-- **🔔 Notifications** — members get a message when a new lesson is added
-  (can be turned off in Settings).
-- **🔎 Search** across subjects, lesson titles, descriptions and summaries.
-- **🛡 Admin panel** — members, requests, add by ID/contact/forward, block/remove, broadcast.
+---
 
-## Quick start
+## 🔍 Чому проект багато важить на диску?
+Якщо ви подивитесь на розмір папки проекту, вона може займати понад 1 ГБ. **Але сам код проекту важить лише ~1.5 МБ!**
 
+Головні «винуватці» розміру:
+1. **`.next/` (~580 МБ)** — це локальний кеш компілятора Next.js (Turbopack/SWC/Webpack). Він створюється під час розробки для швидкого перезавантаження сторінок. Його можна видалити будь-якої миті (`rm -rf .next`), він перегенерується автоматично.
+2. **`node_modules/` (~540 МБ)** — встановлені npm-пакети для вебу (Next.js, React, Tailwind, KaTeX для математичних формул, Lucide іконки тощо).
+
+> 💡 **Важливо**: обидві ці папки вже додані в `.gitignore`. У Git або на сервер переноситься **тільки чистий код**, а залежності встановлюються на місці автоматично.
+
+---
+
+## 📁 Структура проекту
+
+```
+web-test-backnote/
+├── bot/                 # Telegram-бот (Python 3.12+, aiogram 3, SQLAlchemy, Alembic)
+│   ├── backnote/        # Код бота (діалоги, моделі, сервіси)
+│   ├── tests/           # Тести бота
+│   ├── Dockerfile       # Легкий Dockerfile для бота на базі uv
+│   └── pyproject.toml   # Залежності Python
+├── src/                 # Веб-інтерфейс (Next.js 16, React 19, Tailwind CSS v4)
+│   ├── app/             # Маршрути та сторінки (App Router)
+│   ├── components/      # UI компоненти (каталог, завдання, теми)
+│   ├── db/              # Drizzle ORM клієнт (читає спільну SQLite базу)
+│   └── lib/             # Авторизація та допоміжні функції
+├── data/                # Спільна база даних SQLite (backnote.db)
+├── docker-compose.yml   # Запуск бота + вебу в 1 команду
+├── Dockerfile           # Оптимізована багатоетапна збірка сайту (Next.js Standalone)
+├── .env.example         # Приклад змінних середовища
+└── package.json         # Скрипти та npm-залежності
+```
+
+---
+
+## 🚀 Швидкий запуск локально
+
+### 1. Налаштування оточення
+Створіть файл `.env` у корені проекту (скопіюйте з `.env.example`):
 ```bash
-cp .env.example .env        # set BOT_TOKEN and ADMIN_ID
-uv sync
-uv run backnote             # applies DB migrations, then starts polling
+BOT_TOKEN=ваш_токен_від_BotFather
+ADMIN_ID=ваш_telegram_id
+WEB_URL=http://localhost:3000
 ```
 
-Or with Docker:
-
+### 2. Запуск вебу
 ```bash
-docker compose up -d --build
+npm install
+npm run dev
 ```
+Сайт буде доступний за адресою: [http://localhost:3000](http://localhost:3000)
 
-The SQLite database lives in `./data/backnote.db`.
-
-### Configuration
-
-| Variable | Default | Description |
-|---|---|---|
-| `BOT_TOKEN` | — | Token from @BotFather |
-| `ADMIN_ID` | — | Your Telegram user id (the bot answers `/id`) |
-| `DATABASE_URL` | `sqlite+aiosqlite:///data/backnote.db` | SQLAlchemy async URL |
-| `TIMEZONE` | `Europe/Kyiv` | Used for dates |
-| `GEMINI_API_KEY` | — | Enables AI summaries ([get a free key](https://aistudio.google.com/apikey)) |
-| `GEMINI_MODEL` | `gemini-flash-latest` | Any Gemini model that supports video |
-| `SUMMARY_LANGUAGE` | `Ukrainian` | Language of AI summaries |
-
-### AI summaries
-
-Gemini can watch public YouTube videos directly by URL; the free tier allows up to 8 hours of
-YouTube video per day ([docs](https://ai.google.dev/gemini-api/docs/video-understanding)).
-Private or unlisted videos are not supported. Note that on the free tier Google may use the
-content to improve its products. Without a key, the summary slot stays available for manual
-notes.
-
-## Development
-
+### 3. Запуск бота
+В окремому терміналі:
 ```bash
-uv sync
-uv run pytest
-uv run ruff check . && uv run ruff format --check .
-uv run alembic revision --autogenerate -m "describe change"   # after changing models
+npm run bot:dev
+# або напряму: uv run --project bot backnote
 ```
 
-Project layout:
+---
 
-```
-backnote/
-  __main__.py        entry point (migrations, then the bot)
-  config.py          settings from environment / .env
-  db/                SQLAlchemy models, engine, migration runner
-  migrations/        Alembic migrations
-  services/          data access and business logic (no Telegram code)
-  formatting.py      HTML / Rich Markdown helpers
-  ai.py              Gemini client
-  bot/
-    dialogs/         aiogram-dialog windows (menu, subjects, lessons, …)
-    handlers.py      commands, deep links, notification buttons
-    middlewares.py   whitelist gate
-    notifier.py      new-lesson notifications
-tests/
-```
+## 🌐 Деплой на сервер та підключення домену
 
-## Ideas for later
+### Варіант 1: Найпростіший через Docker Compose (Рекомендовано)
 
-- Telegram Mini App with a richer UI.
-- Quizzes / flashcards generated from summaries, spaced repetition.
-- AI summaries for PDFs and slides, not only videos.
-- Grade tracker per subject, exam schedule.
-- Import a term schedule from the university LMS / Google Calendar.
+На будь-якому Linux сервері (Ubuntu/Debian) з встановленими Docker та Docker Compose:
+
+1. **Клонуйте репозиторій або скопіюйте проект** на сервер.
+2. **Створіть `.env`** з вашим токеном та даними:
+   ```bash
+   BOT_TOKEN=7059076859:...
+   ADMIN_ID=1044569950
+   WEB_URL=https://your-domain.com
+   ```
+3. **Підключення домену (HTTPS автоматично)**:
+   У `docker-compose.yml` розкоментуйте блок `caddy` та вкажіть ваш домен:
+   ```yaml
+   command: caddy reverse-proxy --from https://your-domain.com --to http://web:3000
+   ```
+   *(Переконайтеся, що A-запис домену в DNS вказує на IP вашого сервера).*
+4. **Запустіть проект**:
+   ```bash
+   docker compose up -d --build
+   ```
+   **Готово!** Caddy автоматично випустить безкоштовний SSL-сертифікат Let's Encrypt, сайт працюватиме за HTTPS, а бот і сайт будуть спілкуватися через спільний volume `./data`.
+
+---
+
+### Варіант 2: Запуск напряму на сервері (без Docker)
+
+Якщо не хочете використовувати Docker:
+
+1. **Встановіть Node.js 20+ та Python 3.12+ (або uv)**:
+   ```bash
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+   ```
+2. **Зберіть веб-додаток**:
+   ```bash
+   npm ci
+   npm run build
+   ```
+3. **Запустіть обидва сервіси через PM2** (менеджер процесів):
+   ```bash
+   npm install -g pm2
+   pm2 start npm --name "backnote-web" -- start
+   pm2 start "uv run --project bot backnote" --name "backnote-bot"
+   pm2 save
+   pm2 startup
+   ```
+4. **Налаштуйте Nginx** для проксування порту 3000 на ваш домен і встановіть безкоштовний сертифікат:
+   ```bash
+   sudo certbot --nginx -d your-domain.com
+   ```
+
+---
+
+## 🧪 Тестування
+- Перевірка типізації фронтенду: `npm run typecheck`
+- Тести бота (всі 34 тести міграцій, логіки і завдань): `npm run bot:test`
