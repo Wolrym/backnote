@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1
 FROM node:22-alpine AS base
 
 # Stage 1: Залежності
@@ -31,8 +30,7 @@ ENV HOSTNAME="0.0.0.0"
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Копіюємо публічні статичні файли та зібраний standalone додаток
-COPY --from=builder /app/public* ./public/
+# Копіюємо зібраний standalone додаток
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
